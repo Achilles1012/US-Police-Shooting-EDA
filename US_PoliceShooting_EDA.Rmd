@@ -1,0 +1,570 @@
+# Exploratory Data Analysis on US Police Shootings
+
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+
+**The Washington Post,an American daily newspaper began in 2015 to log person shot and killed by an on-duty police officer in the United States.**
+
+> After **Michael Brown**, an unarmed Black man, was killed in 2014 by police, a Washington Post investigation found that data reported to the FBI on fatal police shootings was undercounted by more than **half**. That gap has widened in recent years. By 2021, only a **third** of departments' fatal shootings appeared in the **FBI database**.
+
+**This data set contains the list of victims from 2015 to 2020.**
+#E:\Semester 1\US_Police_Shootings
+# DATA DESCRIPTION
+
+```{r}
+#setwd("C:/Semester 1/US_Police_Shootings/")
+dataset = read.csv("USPolice.csv")
+View(dataset)
+```
+
+```{r}
+
+#View(dataset)
+```
+
+## SUMMARY
+
+### **Columns and their type in the data set**
+
+```{r}
+#dataset <- subset(dataset, select = -c(name)
+
+dataset <- transform(dataset, date  = as.Date(date))
+
+my_colors = c("#a53860", "#FFD166", "#60712f", "#118AB2", "#073B4C", "#d8a47f")
+
+print(summary(dataset))
+```
+
+# Demographic Analysis
+
+## RACE ABBREVIATION
+
+```{r}
+race_data <- data.frame(
+  race = c("Asian","Black","Hispanic","Native American","Others","White" ),
+  Abbreviation = c("A","B","H","N","O","W")
+)
+
+print(race_data)
+
+```
+
+```{r}
+# Calculate the percentage of each gender
+percentage_data <- dataset %>%
+  group_by(gender) %>%
+  summarise(count = n(), percentage = (n() / nrow(dataset)) * 100)
+
+# Create the pie chart
+p1 <- ggplot(percentage_data, aes(x = "", y = percentage, fill = gender)) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar(theta = "y") +
+  labs(
+    title = "Victims Based on Gender",
+    fill = "Gender"
+  ) +
+  scale_fill_manual(values = my_colors) +
+  geom_text(aes(label = paste0(round(percentage), "%")), position = position_stack(vjust = 0.5)) +
+  theme_void()
+
+
+
+p2 <- dataset %>%
+  ggplot(aes(race))+
+  geom_bar( fill=my_colors)+
+  theme(axis.text.x=element_text(angle=0, hjust=1))+
+  theme(text=element_text(size=10))
+  ggtitle("Race Distribution")
+  
+
+p1
+p2
+
+```
+
+```{r}
+# Calculate the counts for each armed weapon
+armed_counts <- table(dataset$armed)
+
+# Sort and select the top 5 armed weapons
+top_weapons <- head(sort(armed_counts, decreasing = TRUE), 5)
+
+# Combine the rest as "other"
+other_count <- sum(armed_counts[!(names(armed_counts) %in% names(top_weapons))])
+
+# Create a data frame for the pie chart
+pie_data <- data.frame(
+  weapon = c(names(top_weapons), "Other"),
+  count = c(top_weapons, other_count)
+)
+
+# Calculate percentages
+pie_data$percentage <- pie_data$count / sum(pie_data$count) * 100
+
+# Create the pie chart
+
+
+p0<-ggplot(pie_data, aes(x = "", y = percentage, fill = weapon)) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar(theta = "y") +
+  geom_text(aes(label = paste0(round(percentage), "%")), position = position_stack(vjust = 0.5)) +
+  theme_void() +
+  scale_fill_manual(values = my_colors) +
+  ggtitle("Top 5 Victims' Weapons and Unarmed")
+
+
+
+# Calculate the percentage variable first
+percentage_data <- dataset %>%
+  group_by(flee) %>%
+  summarize(count = n()) %>%
+  mutate(percentage = count / sum(count) * 100)
+
+# Create the ggplot
+p1 <- ggplot(percentage_data, aes(x = "", y = percentage, fill = flee)) +
+  geom_col(color = "black") +
+  coord_polar(theta = "y", start = 0) +
+  geom_text(aes(label = paste0(round(percentage), "%")),
+            position = position_stack(vjust = 0.5)) +
+  theme_void() +
+  ggtitle("Victims Fleeing") +
+  scale_fill_manual(values = my_colors) +
+  labs(title = "Victims Fleeing", fill = "With")
+
+    
+  
+# Calculate the percentage variable first
+percentage_data <- dataset %>%
+  group_by(manner_of_death) %>%
+  summarize(count = n()) %>%
+  mutate(percentage = count / sum(count) * 100)
+
+# Create the ggplot
+p2 <- ggplot(percentage_data, aes(x = "", y = percentage, fill = manner_of_death)) +
+  geom_col(color = "black") +
+  coord_polar(theta = "y", start = 0) +
+  geom_text(aes(label = paste0(round(percentage), "%")),
+            position = position_stack(vjust = 0.5)) +
+  theme_void() +
+  ggtitle("Manner of Death") +
+  scale_fill_manual(values = my_colors) +
+  labs(title = "Manner of Death", fill = "Manner")
+
+
+
+
+
+# Calculate the percentage variable first
+percentage_data <- dataset %>%
+  group_by(signs_of_mental_illness) %>%
+  summarize(count = n()) %>%
+  mutate(percentage = count / sum(count) * 100)
+
+# Create the ggplot
+p3 <- ggplot(percentage_data, aes(x = "", y = percentage, fill = signs_of_mental_illness)) +
+  geom_col(color = "black") +
+  coord_polar(theta = "y", start = 0) +
+  geom_text(aes(label = paste0(round(percentage), "%")),
+            position = position_stack(vjust = 0.5)) +
+  theme_void() +
+  ggtitle("Mental Illness") +
+  scale_fill_manual(values = my_colors) +
+  labs(title = "Mental Illness", fill = "Has Mental Illness")
+
+
+
+
+# Calculate the percentage variable first
+percentage_data <- dataset %>%
+  group_by(threat_level) %>%
+  summarize(count = n()) %>%
+  mutate(percentage = count / sum(count) * 100)
+
+# Create the ggplot
+p4 <- ggplot(percentage_data, aes(x = "", y = percentage, fill = threat_level)) +
+  geom_col(color = "black") +
+  coord_polar(theta = "y", start = 0) +
+  geom_text(aes(label = paste0(round(percentage), "%")),
+            position = position_stack(vjust = 0.5)) +
+  theme_void() +
+  ggtitle("Threat Level") +
+  scale_fill_manual(values = my_colors) +
+  labs(title = "Threat Level", fill = "Threat level Posed:")
+
+
+p0
+p1
+p2
+p3
+p4
+```
+
+## **TWO-LETTER STATE AND TERRITORY ABBREVIATIONS**
+
+```{r}
+# Create a data frame with state names and abbreviations
+state_data <- data.frame(
+  State = c(
+    "Alabama", "Alaska", "Arizona", "Arkansas", "American Samoa",
+    "California", "Colorado", "Connecticut", "Delaware", "District of Columbia",
+    "Florida", "Georgia", "Guam", "Hawaii", "Idaho", "Illinois", "Indiana",
+    "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts",
+    "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska",
+    "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina",
+    "North Dakota", "Northern Mariana Islands", "Ohio", "Oklahoma", "Oregon",
+    "Pennsylvania", "Puerto Rico", "Rhode Island", "South Carolina", "South Dakota",
+    "Tennessee", "Texas", "Trust Territories", "Utah", "Vermont", "Virgin Islands",
+    "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"
+  ),
+  Abbreviation = c(
+    "AL", "AK", "AZ", "AR", "AS",
+    "CA", "CO", "CT", "DE", "DC",
+    "FL", "GA", "GU", "HI", "ID", "IL", "IN",
+    "IA", "KS", "KY", "LA", "ME", "MD", "MA",
+    "MI", "MN", "MS", "MO", "MT", "NE", "NV",
+    "NH", "NJ", "NM", "NY", "NC", "ND", "MP",
+    "OH", "OK", "OR", "PA", "PR", "RI", "SC", "SD",
+    "TN", "TX", "TT", "UT", "VT", "VI", "VA", "WA", "WV", "WI", "WY"
+  )
+)
+
+# Print the data frame
+print(state_data)
+```
+
+```{r}
+# Calculate the count of victims for each state
+state_counts <- table(dataset$state)
+
+# Convert the counts to a data frame
+state_data <- data.frame(state = names(state_counts), count = as.numeric(state_counts))
+
+# Sort the data frame by count in descending order
+state_data <- state_data[order(state_data$count, decreasing = TRUE), ]
+
+# Create a horizontal bar chart
+ggplot(state_data, aes(x = count, y = reorder(state, -count))) +
+  geom_bar(stat = "identity", fill = "#CC0000") +
+  geom_text(aes(label = count), hjust = -0.25) +
+  labs(
+    title = "States with Victims Count",
+    x = "Number of Victims",
+    y = "State"
+  )
+
+```
+
+```{r}
+
+library(stringr)
+usa <- map_data("state")
+
+usa_states <- usa %>%
+  mutate(state = state.abb[match(str_to_title(usa$region), state.name)])
+
+shoot_states <- dataset %>%
+  group_by(state) %>%
+  summarise(count = n())
+
+usa_states_shoot_map <- merge(usa_states, shoot_states, by.x = "state", by.y = "state", sort = FALSE)
+usa_states_shoot_map <- usa_states_shoot_map[order(usa_states_shoot_map$order),]
+
+# Calculate the center of each state
+state_centers <- usa_states_shoot_map %>%
+  group_by(state) %>%
+  summarize(center_long = mean(long), center_lat = mean(lat))
+
+# Create the map with border lines and color
+ggplot() +
+  geom_polygon(data = usa_states_shoot_map, aes(x = long, y = lat, group = group, fill = count), color = 'black') +
+  geom_path(data = usa_states_shoot_map, aes(x = long, y = lat, group = group), color = 'black') +
+  geom_text(data = state_centers, aes(x = center_long, y = center_lat, label = state), hjust = 0.5, vjust = 0.5) +
+  coord_map("polyconic") +
+  scale_fill_continuous(low = "lightblue", high = "red") +
+  theme_minimal() +
+  theme(axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank()) +
+  ggtitle('United States Shootings Heat Map')
+
+```
+
+# Racial Bias in US Fatal Police Shootings
+
+```{r}
+dataset$year <- as.integer(format(as.Date(dataset$date), "%Y"))
+dataset %>%
+  filter(year < 2021) %>%
+  group_by(race, year) %>%
+  mutate(race_killed = n()) %>%
+  ggplot(aes(x = factor(year), y = race_killed, fill = race)) +
+  labs(
+    title = "Number of different victims of each race and each year:",
+    x = "Year",
+    y = "Count of Victims",
+    fill = "Race:"
+  ) +
+  geom_col(position = 'dodge') +
+  scale_fill_manual(values = my_colors) +
+  scale_x_discrete(labels = c("2015", "2016", "2017", "2018", "2019", "2020"))  # Set custom x-axis labels
+
+```
+
+```{r}
+race_pop_data <- read.csv("Race_Pop.csv")
+race_pop_data
+```
+
+```{r}
+
+race_pop_data <- read.csv("Race_Pop.csv")
+# Extract the year from the date column
+dataset$year <- as.integer(format(as.Date(dataset$date), "%Y"))
+
+# Group and count victims by year and race, and set `.groups` to 'drop'
+victim_counts <- dataset %>%
+  group_by(year, race) %>%
+  summarize(count = n(), .groups = 'drop')
+
+# Merge the victim counts with population data
+merged_data <- inner_join(victim_counts, race_pop_data, by = c("year", "race"))
+
+# Calculate the proportion of victims relative to the population
+merged_data <- merged_data %>%
+  mutate(proportion = count / population) 
+
+# Create the bar chart with explicit x-axis breaks
+ggplot(merged_data, aes(x = year, y = proportion, fill = race)) +
+  geom_col(position = 'dodge') +
+  labs(
+    title = "Proportion of Victims by Race and Year (Relative to Population)",
+    x = "Year",
+    y = "Proportion of Victims",
+    fill = "Race"
+  ) +
+  scale_fill_manual(values = my_colors,) +
+  scale_x_continuous(breaks = unique(merged_data$year))
+
+```
+
+# Classification by Age:-
+
+## Box Plot of Victims by Age
+
+```{r}
+dataset %>%
+  ggplot(aes(race, age)) +
+  geom_boxplot(aes(fill = race)) +
+  scale_fill_manual(values = my_colors) +
+  labs(
+    title = "Box Plot of Victims of Different Races by Age",
+    x = "Race of Victim",
+    y = "Age of Victim",
+    fill = "Race:"
+  )
+
+# Calculate summary statistics by race
+summary_stats <- dataset %>%
+  group_by(race) %>%
+  summarize(
+    Q1 = quantile(age, 0.25),
+    Q2 = median(age),
+    Q3 = quantile(age, 0.75),
+    IQR = IQR(age),
+    Max = max(age),
+    Min = min(age)
+  )
+
+# Print the summary statistics
+print(summary_stats)
+
+ggplot(dataset, aes(y = age, fill = "Ages")) +
+  geom_boxplot() +
+  labs(
+    title = "Box Plot of Victim Age",
+    y = "Age of Victim"
+  ) +
+  theme_minimal() +
+  scale_fill_manual(values = "orange")
+
+# Calculate summary statistics
+summary_stats <- dataset %>%
+  summarize(
+    Q1 = quantile(age, 0.25),
+    Q2 = median(age),
+    Q3 = quantile(age, 0.75),
+    IQR = IQR(age),
+    Max = max(age),
+    Min = min(age)
+  )
+print(summary_stats)
+
+```
+
+## Box Plot of Age of Victims Carrying Top 5 Weapons
+
+```{r}
+# Identify the top 5 weapons in the dataset
+top_weapons <- dataset %>%
+  group_by(armed) %>%
+  summarize(count = n()) %>%
+  arrange(desc(count)) %>%
+  top_n(5) %>%
+  pull(armed)
+
+# Filter the dataset to include only the top weapons
+filtered_dataset <- dataset %>%
+  filter(armed %in% top_weapons)
+
+# Create the box plot
+boxplot_plot <- filtered_dataset %>%
+  ggplot(aes(x = armed, y = age, fill = armed)) +
+  geom_boxplot() +
+  labs(
+    title = "Box Plot of Age of Victims Carrying Top 4 Weapons and Unarmed",
+    x = "Type of Armed Weapon",
+    y = "Age of Victim",
+    fill = "Type of Weapon"
+  ) +
+  scale_fill_manual(values = my_colors)
+
+# Calculate and display summary statistics
+summary_stats <- filtered_dataset %>%
+  group_by(armed) %>%
+  summarize(
+    Q1 = quantile(age, 0.25),
+    Q2 = median(age),
+    Q3 = quantile(age, 0.75),
+    IQR = IQR(age),
+    max_outlier = Q3 + 1.5 * IQR,
+    min_outlier = Q1 - 1.5 * IQR
+  )
+
+# Display summary statistics
+
+boxplot_plot
+summary_stats
+```
+
+# Consistencies in Police Shootings
+
+### Cumulative Count of Victims Over Months (by Year)
+
+```{r}
+# Convert the 'date' column to a date format if it's not already
+dataset$date <- as.Date(dataset$date)
+
+# Extract year and month from the 'date' column
+dataset$year <- format(dataset$date, "%Y")
+dataset$month <- format(dataset$date, "%m")
+
+# Filter the dataset for years 2015 to 2020
+filtered_data <- dataset %>%
+  filter(year >= "2015" & year <= "2020")
+
+# Calculate cumulative victims
+cumulative_data <- filtered_data %>%
+  group_by(year, month) %>%
+  summarize(cumulative_victims = n()) %>%
+  arrange(year, month) %>%
+  group_by(year) %>%
+  mutate(cumulative_victims = cumsum(cumulative_victims))
+
+# Create the cumulative line plot
+ggplot(cumulative_data, aes(x = month, y = cumulative_victims, color = year, group = year)) +
+  geom_line() +
+  labs(
+    title = "Cumulative Victims Over Months (by Year)",
+    x = "Month",
+    y = "Number of Victims"
+  ) +
+  scale_x_discrete(breaks = unique(cumulative_data$month), labels = month.name) +
+  scale_color_discrete() +
+  theme_minimal()
+
+```
+
+```{r}
+# Filter the dataset for years 2015 to 2020
+filtered_data <- dataset %>%
+  filter(year >= 2015, year <= 2020)
+
+# Calculate the number of victims for each year
+victim_counts <- filtered_data %>%
+  group_by(year) %>%
+  summarize(total_victims = n())
+
+victim_counts
+
+```
+
+### Total Victims by Year vs Signs of Mental Illness Status
+
+```{r}
+# Filter the dataset to include records up to 2020
+filtered_dataset <- subset(dataset, year <= 2020)
+
+# Extract the year from the date column
+filtered_dataset$year <- as.integer(format(as.Date(filtered_dataset$date), "%Y"))
+
+# Create a summary table of total victims by year and signs_of_mental_illness status
+summary_data <- filtered_dataset %>%
+  group_by(year, signs_of_mental_illness) %>%
+  summarize(total_victims = n(), .groups = "drop")
+
+# Create a bar graph
+ggplot(summary_data, aes(x = factor(year), y = total_victims, fill = factor(signs_of_mental_illness))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(
+    title = "Total Victims by Year vs Signs of Mental Illness Status",
+    x = "Year",
+    y = "Number of Victims",
+    fill = "Signs of Mental Illness"
+  )
+summary_data
+
+```
+
+### Total Victims by Year vs Police Body Camera Status
+
+```{r}
+
+# Filter the dataset to include records up to 2020
+filtered_dataset <- subset(dataset, year <= 2020)
+
+# Extract the year from the date column
+filtered_dataset$year <- as.integer(format(as.Date(filtered_dataset$date), "%Y"))
+
+# Create a summary table of total victims by year and body_camera status
+summary_data <- filtered_dataset %>%
+  group_by(year, body_camera) %>%
+  summarize(total_victims = n(), .groups = "drop")
+
+# Create a bar graph
+ggplot(summary_data, aes(x = factor(year), y = total_victims, fill = factor(body_camera))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(
+    title = "Total Victims by Year vs Police Body Camera Status",
+    x = "Year",
+    y = "Number of Victims",
+    fill = "Body Camera Status"
+  )
+summary_data
+```
+
+# Bibliography
+
+US Police Shooting Data-set :-
+
+<https://www.washingtonpost.com/graphics/investigations/police-shootings-database/>
+
+Two-Letter State and Territory Abbreviations:-
+
+<https://www.faa.gov/air_traffic/publications/atpubs/cnt_html/appendix_a.html>
+
+US Population By Race:-
+
+<https://www.census.gov/quickfacts/fact/table/US/PST045222>
